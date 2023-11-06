@@ -1,5 +1,5 @@
 import asyncio
-
+from core.logg.logger import setup_logger
 
 from aiogram import Bot, Dispatcher
 from aiogram.filters import Command, StateFilter
@@ -13,13 +13,14 @@ from core.backend.magic_data_for_example import get_example_data
 from core.states.engine_test import EngineTets
 from aiogram.fsm.state import default_state
 
-
+logger = setup_logger(log_file='debug.log', log_level='DEBUG')
 
 async def assert_start(bot: Bot) -> None:
     """
     Отправляет команду на установку команд бота и сообщение об запуске бота администратору.
     """
     await set_commands(bot)
+    logger.debug('Бот запущен')
     await bot.send_message(settings.bots.id_admin, 'Бот запущен')
 
 
@@ -27,6 +28,7 @@ async def assert_stop(bot: Bot) -> None:
     """
     Отправляет сообщение об остановке бота администратору.
     """
+    logger.debug('Бот остановлен')
     await bot.send_message(settings.bots.id_admin, 'Бот остановлен')
 
 
@@ -41,6 +43,7 @@ async def handle_test_operation() -> None:
     example_data = await get_example_data()
     if example_data is not False:
         EngineTets.test_bot = TestBot(data=example_data)
+        logger.debug('Модуль тестирования подготовлен')
 
 async def handle_bot_operations() -> None:
     """
@@ -54,7 +57,6 @@ async def handle_bot_operations() -> None:
     dp.startup.register(assert_start)
     dp.shutdown.register(assert_stop)
 
-    dp.message.register(restart_bot, Command(commands='restart'), ~StateFilter(default_state))
     dp.message.register(get_start, Command(commands='start'), StateFilter(default_state))
     dp.message.register(get_help, Command(commands='help'), StateFilter(default_state))
     dp.message.register(get_test, Command(commands='test'), StateFilter(default_state))
